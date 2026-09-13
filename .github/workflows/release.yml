@@ -38,5 +38,5 @@ jobs:
           # `gem build -o` writes the file but will not create its parent,
           # so a clean checkout fails on ENOENT before it ever reaches push.
           mkdir -p pkg
-          gem build vpndetection.gemspec -o "pkg/vpndetection-${GITHUB_REF_NAME#v}.gem"
-          gem push "pkg/vpndetection-${GITHUB_REF_NAME#v}.gem"
+          gem build vpndetection-rails.gemspec -o "pkg/vpndetection-rails-${GITHUB_REF_NAME#v}.gem"
+          gem push "pkg/vpndetection-rails-${GITHUB_REF_NAME#v}.gem"
