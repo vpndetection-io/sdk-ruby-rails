@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
                      'Roda too; a Railtie inserts it for you in Rails.'
   spec.homepage = 'https://vpndetection.io'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>= 3.1'
+  spec.required_ruby_version = '>= 3.3'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = 'https://github.com/vpndetection-io/sdk-ruby-rails'
@@ -25,5 +25,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'rack', '>= 2.2'
-  spec.add_dependency 'vpndetection', '>= 5.3', '< 6'
+  spec.add_dependency 'vpndetection', '>= 5.4', '< 6'
 end

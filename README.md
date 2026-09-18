@@ -15,7 +15,7 @@ It is Rack middleware, so it works in Sinatra, Hanami, Roda or a bare Rack app t
 bundle add vpndetection-rails
 ```
 
-Requires Ruby 3.1 or newer.
+Requires Ruby 3.3 or newer.
 
 You need an API key. Create one in the [console](https://app.vpndetection.io); the free tier's allowance is counted per source address, and a server is a single source address, so a key is what makes this usable in production rather than optional.
 
