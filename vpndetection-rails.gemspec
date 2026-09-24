@@ -25,5 +25,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'rack', '>= 2.2'
-  spec.add_dependency 'vpndetection', '>= 5.4.1', '< 6'
+  spec.add_dependency 'vpndetection', '>= 5.4.2', '< 6'
 end
