@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.0.7 - 2026-09-29
+
+### Fixes
+
+- Require vpndetection 5.5.1: IPv4-mapped visitors are looked up, not waved through ([`230d068`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/230d06806702d85ea7dac79458d4e2772fb171fb))
+
 ## 2.0.6 - 2026-09-27
 
 ### Features
