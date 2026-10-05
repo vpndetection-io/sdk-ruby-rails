@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.0.9 - 2026-10-05
+
+### Features
+
+- Require vpndetection 5.6.0: the authorization code sign-in ([`186991e`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/186991e65131f765fd49725e5ddb52dde4c5e841))
+
 ## 2.0.8 - 2026-10-04
 
 ### Fixes
