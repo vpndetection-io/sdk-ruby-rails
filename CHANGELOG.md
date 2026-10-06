@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.0.10 - 2026-10-06
+
+### Fixes
+
+- Require vpndetection 5.6.1: an unreadable 2xx is a retried server_error ([`662d9cf`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/662d9cfb202b44ad5cec087955e4a3b99cf1f282))
+
 ## 2.0.9 - 2026-10-05
 
 ### Features
