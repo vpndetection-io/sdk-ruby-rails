@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.0.11 - 2026-10-08
+
+### Fixes
+
+- Require vpndetection 5.6.2: every answer a call cannot read is retried ([`9153abc`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/9153abc13d8c14910a715aae79cf6394140b883a))
+
 ## 2.0.10 - 2026-10-06
 
 ### Fixes
