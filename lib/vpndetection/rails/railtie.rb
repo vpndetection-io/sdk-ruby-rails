@@ -5,9 +5,9 @@ module VPNDetection
     # Inserts the middleware for a Rails app, configured from
     # `config.vpndetection`.
     #
-    # Placed before ActionDispatch::Executor so a refusal costs no controller
-    # work, and after Rails' own RemoteIp so `request.ip` already means what
-    # your `trusted_proxies` say it means.
+    # Placed right after Rails' own RemoteIp, so `request.ip` already means
+    # what your `trusted_proxies` say it means, and before the router, so a
+    # refusal costs no controller work.
     class Railtie < ::Rails::Railtie
       config.vpndetection = ActiveSupport::OrderedOptions.new
 
