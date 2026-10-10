@@ -70,9 +70,9 @@ on_blocked: ->(request, lookup) { [303, { "location" => "/no-vpn" }, []] }
 
 This is the setting that decides whether any of the above works, and it is the one thing only you can get right.
 
-**In Rails**, the default reads `env["action_dispatch.remote_ip"]` — the answer `ActionDispatch::RemoteIp` computed from `X-Forwarded-For` minus your `config.action_dispatch.trusted_proxies`. That is the right fix behind a load balancer: tell Rails which proxies are yours and it resolves the visitor for you. `Rack::Request#ip` does *not* read that entry, so reading Rails' own is what makes your `trusted_proxies` mean anything here.
+**In Rails**, the default reads `env["action_dispatch.remote_ip"]` — the answer `ActionDispatch::RemoteIp` computed from `X-Forwarded-For` minus your `config.action_dispatch.trusted_proxies`. That is the right fix behind a load balancer: tell Rails which proxies are yours and it resolves the visitor for you. `Rack::Request#ip` does *not* read that entry, so reading Rails' own is what makes your `trusted_proxies` mean anything here. **With nothing in front of the app server, that default can be forged**: `RemoteIp` believes `X-Forwarded-For` without checking that the connection came from a proxy, so any visitor picks the address that gets looked up. There, pass `ip_selector: ->(request) { request.ip }`.
 
-**In a bare Rack app** there is no such entry and the default falls back to `Rack::Request#ip`. Be aware that Rack's `ip` **already trusts `X-Forwarded-For`**: it returns the left-most entry once private and loopback addresses are dropped, which is whatever the caller sent. That is measured, not assumed, and the test suite pins it. Behind nothing, or behind an edge that appends rather than overwrites, name your edge's header instead:
+**In a bare Rack app** there is no such entry and the default falls back to `Rack::Request#ip`. Rack's `ip` returns the connecting address, `REMOTE_ADDR`, unless that is a trusted proxy, which by default means a loopback or private address. Only then does it read `X-Forwarded-For`, and it takes the right-most entry that is not a trusted proxy. The test suite pins both. Behind an edge on a public address, or one that appends rather than overwrites, name your edge's header instead:
 
 ```ruby
 ip_selector: VPNDetection::Rails.header_ip_selector("CF-Connecting-IP")

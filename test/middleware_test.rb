@@ -120,11 +120,9 @@ class MiddlewareTest < Minitest::Test
     assert_equal 1, calls.length
   end
 
-  # Rack's own `ip` trusts X-Forwarded-For: it returns the left-most entry once
-  # private and loopback addresses are dropped, which is whatever the caller
-  # sent. Measured, not assumed - and the reason the README says so plainly
-  # instead of implying Rack gives you the socket peer.
-  def test_racks_default_already_trusts_a_forwarded_header
+  # Rack's own `ip` reads X-Forwarded-For only when the connecting address is a
+  # trusted proxy, as the loopback REMOTE_ADDR here is.
+  def test_racks_default_reads_a_forwarded_header_from_a_trusted_proxy
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
     _, body = call(client: client, headers: { 'X-Forwarded-For' => PUBLIC_IP })
 
@@ -139,6 +137,16 @@ class MiddlewareTest < Minitest::Test
 
     assert_equal '45.83.91.9', body['ip'], 'a named header must win over the chain'
     assert_equal 1, header_calls.length
+  end
+
+  # From a peer that is not a trusted proxy, Rack 3's `ip` is that peer, whatever
+  # X-Forwarded-For says.
+  def test_racks_default_ignores_a_forwarded_header_from_a_public_peer
+    client, calls = serving({ 'ip' => '45.83.91.9', 'is_vpn' => true })
+    _, body = call(client: client, remote_addr: '45.83.91.9', headers: { 'X-Forwarded-For' => PUBLIC_IP })
+
+    assert_equal '45.83.91.9', body['ip']
+    assert_equal 1, calls.length
   end
 
   def test_a_header_selector_reads_the_edge_that_writes_it
