@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.0.12 - 2026-10-10
+
+### Fixes
+
+- Require vpndetection 5.6.3: the spec re-pinned to 2026.10.09 ([`430c30c`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/430c30cb383a9b0b9fc5ec06901b356f417530c9))
+
 ## 2.0.11 - 2026-10-08
 
 ### Fixes
