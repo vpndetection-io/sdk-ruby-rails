@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.0 - 2026-10-13
+
+### Features
+
+- Warn once when a visitor can choose the address Rails reports ([`d75b866`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/d75b86699ca99fc400c889f9fa85acb34fa55f45))
+
 ## 2.0.12 - 2026-10-10
 
 ### Fixes
