@@ -21,6 +21,9 @@ module VPNDetection
       def initialize(app, **options)
         @app = app
         @on_blocked = options.delete(:on_blocked) || method(:refuse)
+        # Only the default selector reads Rails' remote_ip.
+        @check_forgery = !options.key?(:ip_selector)
+        @on_warn = options[:on_warn]
         @core = VPNDetection::Middleware::Core.new(
           Rails.default_ip_selector, **options
         )
@@ -28,6 +31,7 @@ module VPNDetection
 
       def call(env)
         request = ::Rack::Request.new(env)
+        warn_forgeable(request) if @check_forgery
         lookup = @core.evaluate(request)
         return @app.call(env) if lookup.nil?
 
@@ -38,6 +42,20 @@ module VPNDetection
       end
 
       private
+
+      # Once: the setup is the same on every request.
+      def warn_forgeable(request)
+        peer = Rails.forgeable_peer(request)
+        return if peer.nil?
+
+        @check_forgery = false
+        message = "a request carrying X-Forwarded-For came from #{peer}, a public address outside " \
+                  'config.action_dispatch.trusted_proxies, so Rails takes the visitor from that header, ' \
+                  'which anyone connecting directly can set. If a proxy sits in front of this app, ' \
+                  'add its addresses to trusted_proxies; if nothing does, pass ' \
+                  'ip_selector: ->(request) { request.ip }.'
+        @on_warn ? @on_warn.call(message) : Kernel.warn("[vpndetection] #{message}")
+      end
 
       def refuse(_request, _lookup)
         body = JSON.generate({ 'error' => 'access denied' })

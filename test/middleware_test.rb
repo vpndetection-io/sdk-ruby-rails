@@ -149,6 +149,56 @@ class MiddlewareTest < Minitest::Test
     assert_equal 1, calls.length
   end
 
+  # Rails' RemoteIp believes X-Forwarded-For and Client-IP from any peer outside
+  # trusted_proxies, so with nothing in front of the app server a visitor names
+  # the address looked up. The default still reads it; the middleware says so once.
+  def test_warns_once_when_a_public_peer_names_the_visitor_to_rails
+    client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
+    %w[X-Forwarded-For Client-IP].each do |header|
+      warnings = []
+      stack = remote_ip_stack(client: client, on_warn: ->(m) { warnings << m })
+      2.times do
+        body = request_through(stack, remote_addr: '45.83.91.9', headers: { header => PUBLIC_IP })
+        assert_equal PUBLIC_IP, body['ip'], 'the default must keep reading remote_ip'
+      end
+
+      assert_equal 1, warnings.length, header
+      assert_includes warnings.first, '45.83.91.9'
+      assert_includes warnings.first, 'trusted_proxies'
+    end
+    assert_equal 4, calls.length
+  end
+
+  def test_no_warning_behind_a_trusted_proxy_without_the_header_or_with_the_apps_selector
+    client, = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
+    warnings = []
+    on_warn = ->(m) { warnings << m }
+    forwarded = { 'X-Forwarded-For' => PUBLIC_IP }
+    [
+      [remote_ip_stack(client: client, on_warn: on_warn), '10.0.0.5', forwarded],
+      [remote_ip_stack(client: client, on_warn: on_warn), '127.0.0.1', forwarded],
+      [remote_ip_stack(proxies: [IPAddr.new('45.83.91.0/24')], client: client, on_warn: on_warn),
+       '45.83.91.9', forwarded],
+      [remote_ip_stack(proxies: ['45.83.91.9'], client: client, on_warn: on_warn), '45.83.91.9', forwarded],
+      [remote_ip_stack(client: client, on_warn: on_warn), PUBLIC_IP, {}],
+      [remote_ip_stack(client: client, on_warn: on_warn, ip_selector: lambda(&:ip)), '45.83.91.9', forwarded]
+    ].each do |stack, peer, headers|
+      request_through(stack, remote_addr: peer, headers: headers)
+    end
+
+    assert_empty warnings
+  end
+
+  def remote_ip_stack(proxies: nil, **options)
+    require 'action_dispatch'
+    ActionDispatch::RemoteIp.new(VPNDetection::Rails::Middleware.new(APP, **options), true, proxies)
+  end
+
+  def request_through(stack, remote_addr:, headers: {})
+    env = headers.transform_keys { |k| "HTTP_#{k.upcase.tr('-', '_')}" }
+    JSON.parse(Rack::MockRequest.new(stack).get('/', env.merge('REMOTE_ADDR' => remote_addr)).body)
+  end
+
   def test_a_header_selector_reads_the_edge_that_writes_it
     client, calls = serving({ 'ip' => '45.83.91.9', 'is_vpn' => true })
     _, body = call(client: client,
