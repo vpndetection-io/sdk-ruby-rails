@@ -90,10 +90,10 @@ The request is let through, and the reason is on `lookup.error`. Our outage shou
 
 Answers are cached for an hour, so a returning visitor costs nothing, and private addresses never leave the process. A cache miss is one request to our API, bounded at 2.5 seconds by default and not retried — on a request path, failing open quickly beats holding a visitor while we try again.
 
-Skip what you do not care about:
+Files in `public/`, compiled assets included, never reach the middleware: `ActionDispatch::Static` answers them first, so they cost no lookup. Skip the routes you do not care about:
 
 ```ruby
-skip: ->(request) { request.path.start_with?("/assets") }
+skip: ->(request) { request.path == "/up" || request.path.start_with?("/webhooks") }
 ```
 
 Beyond a few million distinct visitors a day, stop calling the API per request: [download the dataset](https://vpndetection.io/#databases) and look addresses up locally instead.
