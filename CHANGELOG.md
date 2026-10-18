@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.3 - 2026-10-18
+
+### Fixes
+
+- Require vpndetection 5.8.0: is_pubproxy and the pubproxy detail ([`c6ebc38`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/c6ebc382f401ebbf870313e163e48fcb78e06102))
+
 ## 2.1.2 - 2026-10-17
 
 ### Features
