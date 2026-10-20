@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.5 - 2026-10-20
+
+### Fixes
+
+- Require vpndetection 5.9.1: a member of the wrong type or a null is refused ([`62f29dd`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/62f29ddf2bfa939dc861929c5974c6960b640998))
+
 ## 2.1.4 - 2026-10-19
 
 ### Fixes
