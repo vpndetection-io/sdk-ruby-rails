@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.6 - 2026-10-20
+
+### Features
+
+- Require vpndetection 5.10.0: lookup results carry location and asn ([`80b9e13`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/80b9e13cf7bdc721be73250d116acddb90dc5611))
+
 ## 2.1.5 - 2026-10-20
 
 ### Fixes
