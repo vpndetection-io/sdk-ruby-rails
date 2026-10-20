@@ -17,7 +17,7 @@ bundle add vpndetection-rails
 
 Requires Ruby 3.3 or newer.
 
-You need an API key. Create one in the [console](https://app.vpndetection.io); the free tier's allowance is counted per source address, and a server is a single source address, so a key is what makes this usable in production rather than optional.
+You need an API key. Create one in the [console](https://app.vpndetection.io); without one the allowance is counted per source address, and a server is a single source address, so a key is what makes this usable in production rather than optional.
 
 ```ruby
 # config/application.rb
@@ -100,7 +100,7 @@ Beyond a few million distinct visitors a day, stop calling the API per request: 
 
 ## Absent is not false
 
-Only `ip` and `is_vpn` come back on every plan. A member your plan does not include is `nil`, which means "not in your plan" rather than "checked, and no" — and Ruby makes that easy to lose, since `nil` and `false` are both falsy.
+Without a key only `ip` and `is_vpn` come back, and a free key adds Tor, relay, `location` and `asn`. A member your plan does not include is `nil`, which means "not in your plan" rather than "checked, and no" — and Ruby makes that easy to lose, since `nil` and `false` are both falsy.
 
 ```ruby
 lookup.result.hosting?            # true or false, never nil
