@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
+require 'rack/builder'
 require 'rack/mock_request'
 
 # The Rack middleware, driven through a real Rack stack, plus the shared corpus.
@@ -50,6 +51,31 @@ class MiddlewareTest < Minitest::Test
                                 .get('/', env_headers.merge(env)
                                                      .merge('REMOTE_ADDR' => remote_addr))
     [response.status, JSON.parse(response.body.empty? ? '{}' : response.body)]
+  end
+
+  # The README's Rack form, an API key from the environment and nothing else,
+  # set and unset: every other test hands the middleware a client of its own.
+  def test_it_builds_as_the_readme_does_from_a_key_alone
+    [['k_readme', 'Bearer k_readme'], [nil, nil]].each do |key, header|
+      seen = []
+      Typhoeus.stub(%r{\A#{Regexp.escape(BASE_URL)}/}).and_return do |request|
+        seen << request.options[:headers]['Authorization']
+        json_response(200, { 'ip' => PUBLIC_IP, 'is_vpn' => true })
+      end
+      saved = ENV.fetch('VPNDETECTION_API_KEY', nil)
+      ENV['VPNDETECTION_API_KEY'] = key
+      app = Rack::Builder.new do
+        use VPNDetection::Rails::Middleware, api_key: ENV['VPNDETECTION_API_KEY']
+        run APP
+      end
+      ENV['VPNDETECTION_API_KEY'] = saved
+
+      body = JSON.parse(Rack::MockRequest.new(app).get('/', 'REMOTE_ADDR' => PUBLIC_IP).body)
+
+      assert_equal true, body['is_vpn'], key.inspect
+      assert_equal [header], seen, key.inspect
+      Typhoeus::Expectation.clear
+    end
   end
 
   def test_enriches_the_request_and_leaves_the_decision_to_the_app
