@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.8 - 2026-10-22
+
+### Fixes
+
+- Require vpndetection 5.11.0: a key trimmed, and oauth.register ([`bb3449b`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/bb3449b9fa21e28d0fc2cbef2ea6bed47efcdf58))
+
 ## 2.1.7 - 2026-10-21
 
 ### Fixes
