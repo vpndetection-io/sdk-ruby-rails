@@ -21,8 +21,9 @@ module VPNDetection
       def initialize(app, **options)
         @app = app
         @on_blocked = options.delete(:on_blocked) || method(:refuse)
-        # Only the default selector reads Rails' remote_ip.
+        # Only the default selector reads Rails' remote_ip, or Rack's ip.
         @check_forgery = !options.key?(:ip_selector)
+        @check_passed_through = @check_forgery
         @on_warn = options[:on_warn]
         @core = VPNDetection::Middleware::Core.new(
           Rails.default_ip_selector, **options
@@ -32,6 +33,7 @@ module VPNDetection
       def call(env)
         request = ::Rack::Request.new(env)
         warn_forgeable(request) if @check_forgery
+        warn_passed_through(request) if @check_passed_through
         lookup = @core.evaluate(request)
         return @app.call(env) if lookup.nil?
 
@@ -49,11 +51,29 @@ module VPNDetection
         return if peer.nil?
 
         @check_forgery = false
-        message = "a request carrying X-Forwarded-For came from #{peer}, a public address outside " \
-                  'config.action_dispatch.trusted_proxies, so Rails takes the visitor from that header, ' \
-                  'which anyone connecting directly can set. If a proxy sits in front of this app, ' \
+        message = "a request carrying #{Rails.forwarding_header(request)} came from #{peer}, a public " \
+                  'address outside config.action_dispatch.trusted_proxies, so Rails takes the visitor ' \
+                  'from that header, which anyone connecting directly can set. If a proxy sits in front of this app, ' \
                   'add its addresses to trusted_proxies; if nothing does, pass ' \
                   'ip_selector: ->(request) { request.ip }.'
+        say(message)
+      end
+
+      # Once, as above.
+      def warn_passed_through(request)
+        proxy = Rails.passed_through_forwarded(request)
+        return if proxy.nil?
+
+        @check_passed_through = false
+        message = "a request through #{proxy} carries Forwarded beside X-Forwarded-For, and Rack " \
+                  'reads Forwarded first. A proxy that writes only X-Forwarded-For, as nginx does, ' \
+                  "passes a visitor's own Forwarded through, and that names the address looked up. " \
+                  'If yours does, clear the header there (nginx: proxy_set_header Forwarded "";), ' \
+                  'or set Rack::Request.forwarded_priority = [:x_forwarded] in config.ru.'
+        say(message)
+      end
+
+      def say(message)
         @on_warn ? @on_warn.call(message) : Kernel.warn("[vpndetection] #{message}")
       end
 

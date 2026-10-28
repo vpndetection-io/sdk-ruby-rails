@@ -70,15 +70,23 @@ on_blocked: ->(request, lookup) { [303, { "location" => "/no-vpn" }, []] }
 
 This is the setting that decides whether any of the above works, and it is the one thing only you can get right.
 
-**In Rails**, the default reads `env["action_dispatch.remote_ip"]` — the answer `ActionDispatch::RemoteIp` computed from `X-Forwarded-For` minus your `config.action_dispatch.trusted_proxies`. That is the right fix behind a load balancer: tell Rails which proxies are yours and it resolves the visitor for you. `Rack::Request#ip` does *not* read that entry, so reading Rails' own is what makes your `trusted_proxies` mean anything here. **With nothing in front of the app server, that default can be forged**: `RemoteIp` believes `X-Forwarded-For` without checking that the connection came from a proxy, so any visitor picks the address that gets looked up. There, pass `ip_selector: ->(request) { request.ip }`. The middleware warns once when it sees that setup: a request carrying `X-Forwarded-For` or `Client-IP` from a public address outside `trusted_proxies`.
+**In Rails**, the default reads `env["action_dispatch.remote_ip"]` — the answer `ActionDispatch::RemoteIp` computed from `X-Forwarded-For` minus your `config.action_dispatch.trusted_proxies`. That is the right fix behind a load balancer: tell Rails which proxies are yours and it resolves the visitor for you. `Rack::Request#ip` does *not* read that entry, so reading Rails' own is what makes your `trusted_proxies` mean anything here. **With nothing in front of the app server, that default can be forged**: `RemoteIp` believes `X-Forwarded-For` without checking that the connection came from a proxy, so any visitor picks the address that gets looked up. There, pass `ip_selector: ->(request) { request.ip }`. The middleware warns once when it sees that setup: a request carrying `X-Forwarded-For`, `Client-IP` or `Forwarded` from a public address outside `trusted_proxies`.
 
-**In a bare Rack app** there is no such entry and the default falls back to `Rack::Request#ip`. Rack's `ip` returns the connecting address, `REMOTE_ADDR`, unless that is a trusted proxy, which by default means a loopback or private address. Only then does it read `X-Forwarded-For`, and it takes the right-most entry that is not a trusted proxy. The test suite pins both. Behind an edge on a public address, or one that appends rather than overwrites, name your edge's header instead:
+**In a bare Rack app** there is no such entry and the default falls back to `Rack::Request#ip`. Rack's `ip` returns the connecting address, `REMOTE_ADDR`, unless that is a trusted proxy, which by default means a loopback or private address. Only then does it read the forwarding headers, and it takes the right-most entry that is not a trusted proxy. The test suite pins both. Behind an edge on a public address, or one that appends rather than overwrites, name your edge's header instead:
 
 ```ruby
 ip_selector: VPNDetection::Rails.header_ip_selector("CF-Connecting-IP")
 ```
 
 `VPNDetection::Rails.xff_ip_selector` reads `X-Forwarded-For` directly, and `xff_ip_selector(1)` counts one trusted hop from the right. Anything else, pass your own callable — it receives the Rack request and returns an address.
+
+**Behind a proxy that writes only `X-Forwarded-For`, a visitor's own `Forwarded` header names the address.** Rack 3 reads `Forwarded` first, for `Rack::Request#ip` and Rails' `remote_ip` alike, and nginx passes a visitor's copy through untouched, so a request sending `Forwarded: for=1.1.1.1` is looked up as `1.1.1.1`. Clear the header at the proxy, `proxy_set_header Forwarded "";` in nginx, or tell Rack to read `X-Forwarded-For` alone at the top of `config.ru`:
+
+```ruby
+Rack::Request.forwarded_priority = [:x_forwarded]
+```
+
+The middleware warns once when a request through a proxy carries both headers.
 
 If the address resolves to a private one, the middleware says so once. That is expected locally and is the signal to fix your configuration anywhere else.
 

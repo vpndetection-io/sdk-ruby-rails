@@ -52,11 +52,12 @@ module VPNDetection
 
     # @api private
     # The peer, when Rails' RemoteIp let a header that peer sent name the
-    # visitor: `X-Forwarded-For` or `Client-IP` from a public address outside
-    # the proxies RemoteIp trusts, its defaults or trusted_proxies.
+    # visitor: `X-Forwarded-For`, `Client-IP` or a `Forwarded` Rack reads, from
+    # a public address outside the proxies RemoteIp trusts, its defaults or
+    # trusted_proxies.
     def forgeable_peer(request)
       remote_ip = request.get_header('action_dispatch.remote_ip')
-      return nil if remote_ip.nil? || !forwarded?(request)
+      return nil if remote_ip.nil? || forwarding_header(request).nil?
 
       peer = request.get_header('REMOTE_ADDR').to_s
       return nil unless public_address?(peer)
@@ -71,8 +72,30 @@ module VPNDetection
     end
 
     # @api private
-    def forwarded?(request)
-      %w[HTTP_X_FORWARDED_FOR HTTP_CLIENT_IP].any? { |name| !request.get_header(name).to_s.empty? }
+    # The first header on the request that can name the visitor, or nil.
+    def forwarding_header(request)
+      names = { 'X-Forwarded-For' => 'HTTP_X_FORWARDED_FOR', 'Client-IP' => 'HTTP_CLIENT_IP' }
+      names['Forwarded'] = 'HTTP_FORWARDED' if forwarded_priority.include?(:forwarded)
+      names.find { |_, key| !request.get_header(key).to_s.empty? }&.first
+    end
+
+    # @api private
+    # The proxy, when a request through it carries `Forwarded` beside
+    # `X-Forwarded-For` and Rack reads `Forwarded` first, as Rack 3 does by
+    # default, and so does Rails' RemoteIp, which asks Rack. A proxy writing
+    # only `X-Forwarded-For`, as nginx does, passes the visitor's own
+    # `Forwarded` through, and that names the address looked up.
+    def passed_through_forwarded(request)
+      return nil unless forwarded_priority.first == :forwarded
+      return nil if %w[HTTP_FORWARDED HTTP_X_FORWARDED_FOR].any? { |name| request.get_header(name).to_s.empty? }
+
+      request.get_header('REMOTE_ADDR').to_s
+    end
+
+    # @api private
+    # Rack 2 reads only `X-Forwarded-For`, and has no such setting (2.2.24).
+    def forwarded_priority
+      ::Rack::Request.respond_to?(:forwarded_priority) ? ::Rack::Request.forwarded_priority : [:x_forwarded]
     end
 
     # @api private

@@ -175,24 +175,77 @@ class MiddlewareTest < Minitest::Test
     assert_equal 1, calls.length
   end
 
-  # Rails' RemoteIp believes X-Forwarded-For and Client-IP from any peer outside
-  # trusted_proxies, so with nothing in front of the app server a visitor names
-  # the address looked up. The default still reads it; the middleware says so once.
+  # Rails' RemoteIp believes X-Forwarded-For, Client-IP and, through Rack 3,
+  # Forwarded from any peer outside trusted_proxies, so with nothing in front of
+  # the app server a visitor names the address looked up. The default still
+  # reads it; the middleware says so once. 2.1.9 said nothing for Forwarded.
   def test_warns_once_when_a_public_peer_names_the_visitor_to_rails
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
-    %w[X-Forwarded-For Client-IP].each do |header|
+    headers = { 'X-Forwarded-For' => PUBLIC_IP, 'Client-IP' => PUBLIC_IP, 'Forwarded' => "for=#{PUBLIC_IP}" }
+    headers.each do |header, value|
       warnings = []
       stack = remote_ip_stack(client: client, on_warn: ->(m) { warnings << m })
       2.times do
-        body = request_through(stack, remote_addr: '45.83.91.9', headers: { header => PUBLIC_IP })
+        body = request_through(stack, remote_addr: '45.83.91.9', headers: { header => value })
         assert_equal PUBLIC_IP, body['ip'], 'the default must keep reading remote_ip'
       end
 
       assert_equal 1, warnings.length, header
-      assert_includes warnings.first, '45.83.91.9'
+      assert_includes warnings.first, "carrying #{header} came from 45.83.91.9"
       assert_includes warnings.first, 'trusted_proxies'
     end
+    assert_equal 6, calls.length
+  end
+
+  # nginx writes X-Forwarded-For and passes a visitor's Forwarded through, and
+  # Rack 3 reads Forwarded first, for Rack::Request#ip and RemoteIp alike, so a
+  # forged one names the visitor even from a trusted proxy. The default still
+  # reads it; the middleware says so once, in Rails and in a bare Rack app.
+  def test_warns_once_when_a_trusted_proxy_passes_a_forwarded_header_through
+    client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
+    nginx = { 'Forwarded' => "for=#{PUBLIC_IP}", 'X-Forwarded-For' => '45.83.91.9' }
+    [true, false].each do |rails|
+      warnings = []
+      options = { client: client, on_warn: ->(m) { warnings << m } }
+      stack = rails ? remote_ip_stack(**options) : VPNDetection::Rails::Middleware.new(APP, **options)
+      2.times do
+        body = request_through(stack, remote_addr: '10.0.0.5', headers: nginx)
+        assert_equal PUBLIC_IP, body['ip'], 'the default must keep reading what Rack reads'
+      end
+
+      assert_equal 1, warnings.length, rails ? 'rails' : 'rack'
+      assert_includes warnings.first, 'through 10.0.0.5'
+      assert_includes warnings.first, 'proxy_set_header Forwarded "";'
+      assert_includes warnings.first, 'Rack::Request.forwarded_priority = [:x_forwarded]'
+    end
     assert_equal 4, calls.length
+  end
+
+  # Each fix the warning names finds the visitor, and none warns: the header
+  # cleared at the proxy, or Rack told to read X-Forwarded-For alone.
+  def test_no_forwarded_warning_once_the_header_is_cleared_or_rack_reads_x_forwarded_for_alone
+    client, calls = serving({ 'ip' => '45.83.91.9', 'is_vpn' => true })
+    warnings = []
+    options = { client: client, on_warn: ->(m) { warnings << m } }
+    body = request_through(remote_ip_stack(**options), remote_addr: '10.0.0.5',
+                                                       headers: { 'X-Forwarded-For' => '45.83.91.9' })
+    assert_equal '45.83.91.9', body['ip']
+
+    priority = Rack::Request.forwarded_priority
+    begin
+      Rack::Request.forwarded_priority = [:x_forwarded]
+      [remote_ip_stack(**options), VPNDetection::Rails::Middleware.new(APP, **options)].each do |stack|
+        [['10.0.0.5', { 'Forwarded' => "for=#{PUBLIC_IP}", 'X-Forwarded-For' => '45.83.91.9' }],
+         ['45.83.91.9', { 'Forwarded' => "for=#{PUBLIC_IP}" }]].each do |peer, headers|
+          body = request_through(stack, remote_addr: peer, headers: headers)
+          assert_equal '45.83.91.9', body['ip'], headers.inspect
+        end
+      end
+    ensure
+      Rack::Request.forwarded_priority = priority
+    end
+    assert_empty warnings
+    assert_equal 5, calls.length
   end
 
   def test_no_warning_behind_a_trusted_proxy_without_the_header_or_with_the_apps_selector
