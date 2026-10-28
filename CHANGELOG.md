@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.10 - 2026-10-28
+
+### Fixes
+
+- Warn when a forged Forwarded header can name the visitor ([`3b273ac`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/3b273ac014d43d3ca3b3ff9e90c406c4522809dc))
+
 ## 2.1.9 - 2026-10-26
 
 ### Fixes
