@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.11 - 2026-10-30
+
+### Fixes
+
+- Require vpndetection 5.11.2: a lowercase t or z in a date-time reads ([`9aa8e0b`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/9aa8e0bac5cdb46354391307c6286c904da7152a))
+
 ## 2.1.10 - 2026-10-28
 
 ### Fixes
