@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.12 - 2026-10-31
+
+### Fixes
+
+- Require vpndetection 5.11.3: a bad retries is refused, a sample row is an object ([`8e1bd79`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/8e1bd79d521f5ab1ee04351272ffbbf115e4ad25))
+
 ## 2.1.11 - 2026-10-30
 
 ### Fixes
