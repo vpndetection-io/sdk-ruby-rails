@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.13 - 2026-11-03
+
+### Fixes
+
+- Require vpndetection 5.11.4: a bad concurrency is refused where it is set ([`8477c62`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/8477c621000159e536d755af8d36d843e1b2c6d9))
+
 ## 2.1.12 - 2026-10-31
 
 ### Fixes

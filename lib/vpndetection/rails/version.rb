@@ -2,6 +2,6 @@
 
 module VPNDetection
   module Rails
-    VERSION = '2.1.12'
+    VERSION = '2.1.13'
   end
 end
