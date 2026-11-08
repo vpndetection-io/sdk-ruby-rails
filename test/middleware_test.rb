@@ -201,6 +201,9 @@ class MiddlewareTest < Minitest::Test
   # Rack 3 reads Forwarded first, for Rack::Request#ip and RemoteIp alike, so a
   # forged one names the visitor even from a trusted proxy. The default still
   # reads it; the middleware says so once, in Rails and in a bare Rack app.
+  # From actionpack 8.1.4.1 RemoteIp refuses the disagreement itself
+  # (GHSA-2gff-2mmg-m73p), and the middleware leaves that refusal, Rails' 400,
+  # to Rails, as the app's own remote_ip call would.
   def test_warns_once_when_a_trusted_proxy_passes_a_forwarded_header_through
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
     nginx = { 'Forwarded' => "for=#{PUBLIC_IP}", 'X-Forwarded-For' => '45.83.91.9' }
@@ -209,8 +212,14 @@ class MiddlewareTest < Minitest::Test
       options = { client: client, on_warn: ->(m) { warnings << m } }
       stack = rails ? remote_ip_stack(**options) : VPNDetection::Rails::Middleware.new(APP, **options)
       2.times do
-        body = request_through(stack, remote_addr: '10.0.0.5', headers: nginx)
-        assert_equal PUBLIC_IP, body['ip'], 'the default must keep reading what Rack reads'
+        if rails && remote_ip_refuses_a_disagreeing_forwarded?
+          assert_raises(ActionDispatch::RemoteIp::IpSpoofAttackError) do
+            request_through(stack, remote_addr: '10.0.0.5', headers: nginx)
+          end
+        else
+          body = request_through(stack, remote_addr: '10.0.0.5', headers: nginx)
+          assert_equal PUBLIC_IP, body['ip'], 'the default must keep reading what Rack reads'
+        end
       end
 
       assert_equal 1, warnings.length, rails ? 'rails' : 'rack'
@@ -218,7 +227,12 @@ class MiddlewareTest < Minitest::Test
       assert_includes warnings.first, 'proxy_set_header Forwarded "";'
       assert_includes warnings.first, 'Rack::Request.forwarded_priority = [:x_forwarded]'
     end
-    assert_equal 4, calls.length
+    assert_equal remote_ip_refuses_a_disagreeing_forwarded? ? 2 : 4, calls.length
+  end
+
+  def remote_ip_refuses_a_disagreeing_forwarded?
+    require 'action_dispatch'
+    ActionPack.gem_version >= Gem::Version.new('8.1.4.1')
   end
 
   # Each fix the warning names finds the visitor, and none warns: the header

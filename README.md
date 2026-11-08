@@ -86,7 +86,7 @@ ip_selector: VPNDetection::Rails.header_ip_selector("CF-Connecting-IP")
 Rack::Request.forwarded_priority = [:x_forwarded]
 ```
 
-The middleware warns once when a request through a proxy carries both headers.
+The middleware warns once when a request through a proxy carries both headers. From Rails 8.1.4.1, `RemoteIp` itself refuses a request whose `Forwarded` and `X-Forwarded-For` name different visitors, raising `ActionDispatch::RemoteIp::IpSpoofAttackError`, a 400, and the middleware leaves that to Rails, as your own `remote_ip` call would.
 
 If the address resolves to a private one, the middleware says so once. That is expected locally and is the signal to fix your configuration anywhere else.
 
