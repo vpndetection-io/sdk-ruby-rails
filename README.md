@@ -17,7 +17,7 @@ bundle add vpndetection-rails
 
 Requires Ruby 3.3 or newer.
 
-You need an API key on a paid plan. Create one in the [console](https://app.vpndetection.io); without one a lookup is on the Unlimited tier and leaves out the hosting, CDN and proxy flags, so a paid plan is what makes this usable in production rather than optional. A new account can try every field, 100 lookups a day.
+You need an API key on a paid plan. Create one in the [console](https://app.vpndetection.io); without one a lookup is on Unlimited, the free plan, and leaves out the hosting, CDN and proxy flags, so a paid plan is what makes this usable in production rather than optional. A free account tries every field, 100 lookups a day.
 
 ```ruby
 # config/application.rb
@@ -108,7 +108,7 @@ Beyond a few million distinct visitors a day, stop calling the API per request: 
 
 ## Absent is not false
 
-The Unlimited tier, with a key or without one, leaves out `is_hosting`, `is_cdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's. A member your plan does not include is `nil`, which means "not in your plan" rather than "checked, and no" — and Ruby makes that easy to lose, since `nil` and `false` are both falsy.
+Unlimited, with a key or without one, leaves out `is_hosting`, `is_cdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's. A member your plan does not include is `nil`, which means "not in your plan" rather than "checked, and no" — and Ruby makes that easy to lose, since `nil` and `false` are both falsy.
 
 ```ruby
 lookup.result.hosting?            # true or false, never nil
