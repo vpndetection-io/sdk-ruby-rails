@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.17 - 2026-11-11
+
+### Fixes
+
+- Require vpndetection 5.13.2: the Unlimited tier and its terms ([`ea0f875`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/ea0f8754fd9ac1768272797ddfdabbbe5d949555))
+
 ## 2.1.16 - 2026-11-11
 
 ### Fixes
