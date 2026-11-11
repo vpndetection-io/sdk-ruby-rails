@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.18 - 2026-11-11
+
+### Features
+
+- Require vpndetection 5.14.0: trial_expired on a trial key's answers ([`6c56750`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/6c56750151486ec502cb3d0505d61e6a0c35a7c9))
+
 ## 2.1.17 - 2026-11-11
 
 ### Fixes
