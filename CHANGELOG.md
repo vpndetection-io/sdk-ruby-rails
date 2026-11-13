@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.20 - 2026-11-13
+
+### Fixes
+
+- Require vpndetection 5.14.2: a device poll ends at its deadline ([`76714de`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/76714decab7ce9a745cb3dc9cc7092a3aee3b244))
+
 ## 2.1.19 - 2026-11-11
 
 ### Fixes
