@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.21 - 2026-11-14
+
+### Fixes
+
+- Require vpndetection 5.15.0: is_bogon on every answer, and provider_name beside each provider ([`6e82036`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/6e820369cc3c4581bf4e7dcaee1f532f28edffec))
+
 ## 2.1.20 - 2026-11-13
 
 ### Fixes
