@@ -319,6 +319,14 @@ class MiddlewareTest < Minitest::Test
     assert_match(/constrains nothing/, error.message)
   end
 
+  def test_corpus_invalid_conditions_are_refused_at_construction
+    MIDDLEWARE['invalidConditions'].each do |c|
+      assert_raises(ArgumentError, "#{c['name']}: #{c['why']}") do
+        VPNDetection::Rails::Middleware.new(APP, block_condition: c['condition'])
+      end
+    end
+  end
+
   def test_corpus_conditions
     MIDDLEWARE['conditions'].each do |c|
       why = "#{c['name']}: #{c['why']}"
