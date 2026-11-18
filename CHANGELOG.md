@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.23 - 2026-11-18
+
+### Fixes
+
+- Require vpndetection 5.17.0: cap_reached past a paid plan's overage cap ([`3c6c0a5`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/3c6c0a56d87c59bdda590d99d01b61435b36a7a1))
+
 ## 2.1.22 - 2026-11-16
 
 ### Fixes
