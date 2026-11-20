@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.25 - 2026-11-20
+
+### Fixes
+
+- Require vpndetection 5.18.0: the network, service, company and abuse members ([`72eb278`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/72eb278a5acf157dbe57be294f33398dee8b25bb))
+
 ## 2.1.24 - 2026-11-19
 
 ### Fixes
