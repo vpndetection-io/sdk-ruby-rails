@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.26 - 2026-11-21
+
+### Fixes
+
+- Require vpndetection 5.18.1: a client builds beside a bare Rails constant ([`b6097a1`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/b6097a18bbbb3a15883ea6b2400af6c5e18cc310))
+
 ## 2.1.25 - 2026-11-20
 
 ### Fixes
