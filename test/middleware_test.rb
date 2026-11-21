@@ -302,6 +302,33 @@ class MiddlewareTest < Minitest::Test
     assert_equal 1, calls.length
   end
 
+  # A condition on a member the spec added on 2026-11-20, through the Rack form
+  # with a key and a base URL: a real origin serves the corpus's paid carrier
+  # answer to a request from that carrier's own public address.
+  CARRIER = TestHelper::CORPUS['lookup'].find { |c| c['name'] == 'paid-carrier-ssh-smtp-bittorrent' }['body']
+
+  def carrier_status(condition)
+    origin = TestServer.new(delay: 0) { |_path| [200, JSON.generate(CARRIER)] }
+    warnings = []
+    app = Rack::Builder.new do
+      use VPNDetection::Rails::Middleware, api_key: 'k_carrier', base_url: origin.base_url,
+                                           block_condition: condition, on_warn: ->(m) { warnings << m }
+      run APP
+    end
+    status = Rack::MockRequest.new(app).get('/', 'REMOTE_ADDR' => CARRIER['ip']).status
+    assert_equal ["/#{CARRIER['ip']}"], origin.paths, condition.inspect
+    assert_empty warnings, condition.inspect
+    status
+  ensure
+    origin&.stop
+  end
+
+  def test_a_condition_on_a_new_flag_or_a_company_name_blocks
+    assert_equal 403, carrier_status({ is_carrier: true })
+    assert_equal 403, carrier_status({ company: { name: CARRIER['company']['name'] } })
+    assert_equal 200, carrier_status({ company: { name: 'Someone Else' } })
+  end
+
   def test_a_private_client_address_is_answered_locally_and_never_blocks
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
     status, body = call(client: client, block_condition: { 'is_vpn' => true },
