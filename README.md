@@ -17,7 +17,7 @@ bundle add vpndetection-rails
 
 Requires Ruby 3.3 or newer, and libcurl at runtime, which the `curl` package brings on Debian and Alpine. The Dockerfile Rails generates already installs it.
 
-No API key needed to start. Without one, a lookup is on Unlimited, the free plan, which answers VPN, Tor and relay detection with no daily or monthly cap. A paid plan's key adds the hosting, CDN and proxy flags and the provider behind each flag: create one in the [console](https://app.vpndetection.io). A free account tries every field.
+No API key needed to start. Without one, a lookup is on Unlimited, the free plan, which answers VPN, Tor, relay and bot detection (`is_bot`, whether an automated client such as a search engine's crawler uses the address) with no daily or monthly cap. A paid plan's key adds the hosting, CDN and proxy flags, the provider behind each flag, and `bot`, whose bot it is and whether its operator vouches for the address: create one in the [console](https://app.vpndetection.io). A free account tries every field.
 
 ```ruby
 # config/application.rb
@@ -55,6 +55,7 @@ A condition is written in the shape of an answer, and only the members you name 
 { is_vpn: true, vpn: { provider: "nordvpn" } }         # one provider
 { is_resproxy: true, resproxy: { hits: { gte: 5 } } }  # a numeric threshold
 { vpn: { confidence: %w[high medium] } }               # any of these
+{ bot: { identity: "spoofed" } }                       # a client claiming a bot it is not
 [{ is_tor: true }, { is_resproxy: true }]              # a list is OR
 ```
 
