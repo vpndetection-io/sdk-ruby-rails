@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.1.27 - 2026-11-22
+
+### Features
+
+- Require vpndetection 5.19.0: is_bot and bot on every answer ([`cac67c2`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/cac67c275b48e9943e248ca76691453d8abdae22))
+
 ## 2.1.26 - 2026-11-21
 
 ### Fixes
