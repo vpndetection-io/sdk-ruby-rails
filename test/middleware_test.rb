@@ -202,8 +202,9 @@ class MiddlewareTest < Minitest::Test
   # forged one names the visitor even from a trusted proxy. The default still
   # reads it; the middleware says so once, in Rails and in a bare Rack app.
   # From actionpack 8.1.4.1 RemoteIp refuses the disagreement itself
-  # (GHSA-2gff-2mmg-m73p), and the middleware leaves that refusal, Rails' 400,
-  # to Rails, as the app's own remote_ip call would.
+  # (GHSA-2gff-2mmg-m73p), and the middleware leaves that refusal to Rails, as
+  # the app's own remote_ip call would. Puma answers it with a 500, not a 400:
+  # the address is first read above ShowExceptions, so nothing maps the error.
   def test_warns_once_when_a_trusted_proxy_passes_a_forwarded_header_through
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
     nginx = { 'Forwarded' => "for=#{PUBLIC_IP}", 'X-Forwarded-For' => '45.83.91.9' }
