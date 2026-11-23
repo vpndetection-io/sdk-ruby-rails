@@ -39,12 +39,13 @@ class AllowBotsTest < Minitest::Test
     Typhoeus::Expectation.clear
   end
 
-  # The README's Rack form, with a fresh cache each time.
+  # The README's Rack form, built once as a server builds config.ru:
+  # Rack::Builder#call would build the middleware afresh for every request.
   def readme_app(**extra)
     Rack::Builder.new do
       use VPNDetection::Rails::Middleware, api_key: 'k_readme', block_condition: { is_hosting: true }, **extra
       run APP
-    end
+    end.to_app
   end
 
   def get(app, user_agent = GOOGLEBOT)
