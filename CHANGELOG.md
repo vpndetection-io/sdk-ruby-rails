@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.2.0 - 2026-11-23
+
+### Features
+
+- Require vpndetection 5.20.0: a lookup can send the request's user agent ([`e393ba4`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/e393ba4af0c52c4fe7004f58d2f0562872519061))
+- allow_bots: let a crawler its operator vouches for through ([`f678c56`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/f678c563a528405cb17b5c64048ac6e46982dfe3))
+
 ## 2.1.27 - 2026-11-22
 
 ### Features
