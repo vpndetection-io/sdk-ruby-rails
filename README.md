@@ -67,6 +67,33 @@ Replace the refusal with `on_blocked`, which returns a Rack triplet:
 on_blocked: ->(request, lookup) { [303, { "location" => "/no-vpn" }, []] }
 ```
 
+## Let verified crawlers through
+
+With `allow_bots: true`, the request's own `User-Agent` goes with its lookup, and a request whose answer says its crawler is `verified`, the agent's operator vouching for the address, is never refused, whatever your `block_condition` matches. The answer is still on the request. It is off by default; a request with no `User-Agent`, or an empty one, sends none.
+
+```ruby
+# config/application.rb
+config.vpndetection = {
+  api_key: ENV["VPNDETECTION_API_KEY"],
+  block_condition: { is_hosting: true },
+  allow_bots: true,
+}
+```
+
+```ruby
+# config.ru, or any Rack app
+use VPNDetection::Rails::Middleware, api_key: ENV["VPNDETECTION_API_KEY"],
+                                     block_condition: { is_hosting: true }, allow_bots: true
+```
+
+The verdict is on `lookup.result.user_agent`: `verified`, `spoofed` where the operator does not vouch for the address, `unverifiable` for a bot nothing published can confirm, or `not_bot`. Only a key with every field gets one, a paid plan's or a free account's trial: without a key, or past the trial, no answer carries `user_agent`, so nothing is let through, and the middleware warns once. With it on, a condition can name the verdict, refusing a client that claims a crawler it is not:
+
+```ruby
+block_condition: { user_agent: { verdict: "spoofed" } }
+```
+
+An answer with an agent is cached apart from the address's plain answer and from another agent's, so a cache that held one entry per visitor holds one per visitor and agent.
+
 ## Where the client address comes from
 
 Get this setting right, or none of the above works.

@@ -13,6 +13,9 @@ require 'vpndetection/rails/railtie'
 class RailtieTest < Minitest::Test
   include TestHelper
 
+  GOOGLEBOT = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+  WARNINGS = []
+
   class App < ::Rails::Application
     config.eager_load = false
     config.logger = Logger.new(nil)
@@ -22,6 +25,8 @@ class RailtieTest < Minitest::Test
       client: VPNDetection::Client.new(cache: false, retries: 0),
       ip_selector: VPNDetection::Rails.header_ip_selector('X-Visitor'),
       block_condition: { is_vpn: true },
+      allow_bots: true,
+      on_warn: ->(message) { WARNINGS << message },
     }
     routes.append { root to: ->(_env) { [200, {}, ['handler ran']] } }
   end
@@ -43,6 +48,28 @@ class RailtieTest < Minitest::Test
     assert_equal 200, allowed.status
     assert_equal 'handler ran', allowed.body
     assert_equal 2, calls.length
+  end
+
+  # `allow_bots` from config.vpndetection: the request's own User-Agent reaches
+  # the API, and a verified crawler passes the condition it meets.
+  def test_allow_bots_reaches_the_middleware
+    sent = []
+    Typhoeus.stub(%r{\A#{Regexp.escape(BASE_URL)}/}).and_return do |request|
+      agent = (request.options[:params] || {}).transform_keys(&:to_s)['user_agent']
+      ip = address_of(request)
+      sent << [ip, agent]
+      verdict = ip == '45.83.91.3' ? 'verified' : 'spoofed'
+      json_response(200, { 'ip' => ip, 'is_vpn' => true,
+                           'user_agent' => { 'agent' => 'Googlebot', 'kind' => 'bot', 'verdict' => verdict } })
+    end
+    headers = { 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_USER_AGENT' => GOOGLEBOT }
+    verified = Rack::MockRequest.new(App).get('/', headers.merge('HTTP_X_VISITOR' => '45.83.91.3'))
+    spoofed = Rack::MockRequest.new(App).get('/', headers.merge('HTTP_X_VISITOR' => '45.83.91.4'))
+
+    assert_equal [['45.83.91.3', GOOGLEBOT], ['45.83.91.4', GOOGLEBOT]], sent
+    assert_equal 200, verified.status
+    assert_equal 'handler ran', verified.body
+    assert_equal 403, spoofed.status
   end
 
   def test_it_sits_right_after_rails_own_remote_ip

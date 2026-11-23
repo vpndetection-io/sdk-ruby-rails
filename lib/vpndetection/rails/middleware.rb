@@ -15,6 +15,9 @@ module VPNDetection
     # Without a `block_condition` this only enriches the request and never
     # refuses one, leaving the decision to your own controllers. The answer is
     # on `request.env['vpndetection']`, or `VPNDetection::Rails.lookup(request)`.
+    #
+    # `allow_bots: true` sends the request's own `User-Agent` with its lookup and
+    # never refuses a request whose crawler the answer calls `verified`.
     class Middleware
       ENV_KEY = 'vpndetection'
 
@@ -26,7 +29,7 @@ module VPNDetection
         @check_passed_through = @check_forgery
         @on_warn = options[:on_warn]
         @core = VPNDetection::Middleware::Core.new(
-          Rails.default_ip_selector, **options
+          Rails.default_ip_selector, Rails::SELECTORS.user_agent, **options
         )
       end
 
