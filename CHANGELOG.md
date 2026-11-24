@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.2.1 - 2026-11-24
+
+### Fixes
+
+- Require vpndetection 5.20.1: a malformed first or last day is refused ([`490fc75`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/490fc75bdeececabad8154548dc9265073ce397d))
+
 ## 2.2.0 - 2026-11-23
 
 ### Features
