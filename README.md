@@ -59,7 +59,7 @@ A condition is written in the shape of an answer, and only the members you name 
 [{ is_tor: true }, { is_resproxy: true }]              # a list is OR
 ```
 
-Symbol and string keys both work. Values are matched by equality, strings without regard to case. An Array means any-of. A Hash of `gte`/`gt`/`lte`/`lt` compares numbers, and every bound you give must hold, so two of them are a range. Members set to `false` or `nil` are ignored, so a condition states the signals you act on; one that constrains nothing would match every request, and is refused when the middleware is built rather than silently blocking all your traffic.
+Symbol and string keys both work. Values are matched by equality, strings without regard to case. An Array means any-of. A term on a member the answer holds as a list, such as `pubproxy: { protocols: "socks5" }` or `web: { port: 443 }`, matches when any element matches it, and an object term must match one element whole. A Hash of `gte`/`gt`/`lte`/`lt` compares numbers, and every bound you give must hold, so two of them are a range. Members set to `false` or `nil` are ignored, so a condition states the signals you act on; one that constrains nothing would match every request, and is refused when the middleware is built rather than silently blocking all your traffic.
 
 Replace the refusal with `on_blocked`, which returns a Rack triplet:
 
