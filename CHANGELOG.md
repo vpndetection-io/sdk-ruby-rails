@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.2.3 - 2026-11-25
+
+### Fixes
+
+- Require vpndetection 5.21.1: its README and doc comments name the Data plan ([`d4f4ec9`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/d4f4ec913a225a0556266d3d7bcfa50352fd6283))
+
 ## 2.2.2 - 2026-11-24
 
 ### Fixes
