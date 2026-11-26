@@ -69,7 +69,7 @@ on_blocked: ->(request, lookup) { [303, { "location" => "/no-vpn" }, []] }
 
 ## Let verified crawlers through
 
-With `allow_bots: true`, the request's own `User-Agent` goes with its lookup, and a request whose answer says its crawler is `verified`, the agent's operator vouching for the address, is never refused, whatever your `block_condition` matches. The answer is still on the request. It is off by default; a request with no `User-Agent`, or an empty one, sends none.
+With `allow_bots: true`, the request's own `User-Agent` goes with its lookup when it names a crawler, and a request whose answer says its crawler is `verified`, the agent's operator vouching for the address, is never refused, whatever your `block_condition` matches. The answer is still on the request. It is off by default. Any other agent, or none, is not sent, since its verdict could only be `not_bot`. One address is looked up with at most four crawler agents an hour: past those its lookup sends none, and a request passes as a crawler only where the answer's `bot.verified` is true.
 
 ```ruby
 # config/application.rb
