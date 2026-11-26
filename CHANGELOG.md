@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.2.4 - 2026-11-26
+
+### Features
+
+- Require vpndetection 5.22.0: allow_bots sends only a crawler's User-Agent, at most four an address ([`6199f7e`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/6199f7ed39d18ed903fd2e54d96613cd2dfbddf8))
+
 ## 2.2.3 - 2026-11-25
 
 ### Fixes
