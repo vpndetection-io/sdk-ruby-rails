@@ -330,6 +330,26 @@ class MiddlewareTest < Minitest::Test
     assert_equal 200, carrier_status({ company: { name: 'Someone Else' } })
   end
 
+  # Unlimited's answer carries neither is_bot nor the AS's type. A condition on either never
+  # matches, so the request goes through, and the report names the member, the AS's by its path.
+  def test_a_condition_on_is_bot_or_the_as_type_without_a_key_is_reported_missing_never_matched
+    keyless = { 'ip' => PUBLIC_IP, 'is_vpn' => true,
+                'asn' => { 'asn' => 9009, 'name' => 'M247 Europe SRL', 'domain' => 'm247global.com',
+                           'prefix' => '146.70.116.0/24', 'country' => 'US', 'rpki_status' => 'valid' } }
+    { { is_bot: true } => 'is_bot', { asn: { type: 'hosting' } } => 'asn.type' }.each do |condition, member|
+      client, = serving(keyless)
+      warnings = []
+      status, body = call(client: client, ip_selector: ->(_r) { PUBLIC_IP },
+                          block_condition: condition, on_warn: ->(m) { warnings << m })
+
+      assert_equal 200, status, member
+      assert_equal true, body['is_vpn'], "#{member}: the answer is read, and attached"
+      assert_equal 1, warnings.length, member
+      assert_match(/names #{Regexp.escape(member)}, which your plan does not include/, warnings.first)
+      Typhoeus::Expectation.clear
+    end
+  end
+
   def test_a_private_client_address_is_answered_locally_and_never_blocks
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
     status, body = call(client: client, block_condition: { 'is_vpn' => true },
