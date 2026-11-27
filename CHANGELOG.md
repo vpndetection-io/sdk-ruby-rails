@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.2.6 - 2026-11-27
+
+### Features
+
+- Require vpndetection 5.23.0: a keyless answer without the AS's type reads ([`3ca8c27`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/3ca8c27a6af0f0f609cd15819b8bfdde34cf0a5d))
+
 ## 2.2.5 - 2026-11-26
 
 ### Fixes
