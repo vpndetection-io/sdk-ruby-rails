@@ -17,7 +17,7 @@ bundle add vpndetection-rails
 
 Requires Ruby 3.3 or newer, and libcurl at runtime, which the `curl` package brings on Debian and Alpine. The Dockerfile Rails generates already installs it.
 
-No API key needed to start. Without one, a lookup is on Unlimited, the free plan, which answers VPN, Tor, relay and bot detection (`is_bot`, whether an automated client such as a search engine's crawler uses the address) with no daily or monthly cap. A paid plan's key adds the hosting, CDN and proxy flags, the provider behind each flag, and `bot`, whose bot it is and whether its operator vouches for the address: create one in the [console](https://app.vpndetection.io). A free account tries every field.
+No API key needed to start. Without one, a lookup is on Unlimited, the free plan, which answers VPN, Tor and relay detection with no daily or monthly cap. A paid plan's key adds the hosting, CDN and proxy flags, `is_bot` (whether an automated client such as a search engine's crawler uses the address), the AS's `type`, the provider behind each flag, and `bot`, whose bot it is and whether its operator vouches for the address: create one in the [console](https://app.vpndetection.io). A free account tries every field.
 
 ```ruby
 # config/application.rb
@@ -69,7 +69,7 @@ on_blocked: ->(request, lookup) { [303, { "location" => "/no-vpn" }, []] }
 
 ## Let verified crawlers through
 
-With `allow_bots: true`, the request's own `User-Agent` goes with its lookup when it names a crawler, and a request whose answer says its crawler is `verified`, the agent's operator vouching for the address, is never refused, whatever your `block_condition` matches. The answer is still on the request. It is off by default. Any other agent, or none, is not sent, since its verdict could only be `not_bot`. One address is looked up with at most four crawler agents an hour: past those its lookup sends none, and a request passes as a crawler only where the answer's `bot.verified` is true.
+With `allow_bots: true`, the request's own `User-Agent` goes with its lookup when it names a crawler, and a request whose answer says its crawler is `verified`, the agent's operator vouching for the address, is never refused, whatever your `block_condition` matches. The answer is still on the request. It is off by default. Any other agent, or none, is not sent, since its verdict could only be `not_bot`. One address is looked up with at most four crawler agents an hour: past those its lookup sends none, and a request passes as a crawler only where the answer's `bot.verified` is true. The verdict, and `bot`, are a paid plan's, so an app without a key, or on a free key past its trial, lets no crawler through, and the middleware warns once.
 
 ```ruby
 # config/application.rb
@@ -136,7 +136,7 @@ Beyond a few million distinct visitors a day, stop calling the API per request: 
 
 ## Absent is not false
 
-Unlimited, with a key or without one, leaves out `is_hosting`, `is_cdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's. A member your plan does not include is `nil`, which means "not in your plan" rather than "checked, and no". Ruby makes that easy to lose, since `nil` and `false` are both falsy.
+Unlimited, with a key or without one, leaves out `is_hosting`, `is_cdn`, `is_bot`, the four proxy flags and the AS's `type`, and of the detail behind each flag it answers only Tor's and relay's. A member your plan does not include is `nil`, which means "not in your plan" rather than "checked, and no". Ruby makes that easy to lose, since `nil` and `false` are both falsy.
 
 ```ruby
 lookup.result.hosting?            # true or false, never nil
@@ -144,7 +144,7 @@ lookup.result.is_hosting          # nil when your plan does not include it
 lookup.result.included?(:is_hosting)
 ```
 
-A `block_condition` naming a member your plan does not serve can never match, so the middleware warns once instead of failing silently. Pass `on_missing_field: :raise` to make it an error.
+A `block_condition` naming a member your plan does not serve can never match, so the middleware warns once instead of failing silently: a condition on `is_bot`, or on `asn: { type: ... }`, which it names as `asn.type`, is reported that way without a paid plan, never matched. Pass `on_missing_field: :raise` to make it an error.
 
 ## Other Libraries
 
