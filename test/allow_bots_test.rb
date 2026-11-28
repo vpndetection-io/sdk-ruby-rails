@@ -48,8 +48,8 @@ class AllowBotsTest < Minitest::Test
     end.to_app
   end
 
-  def get(app, user_agent = GOOGLEBOT)
-    env = { 'REMOTE_ADDR' => PEER }
+  def get(app, user_agent = GOOGLEBOT, peer: PEER)
+    env = { 'REMOTE_ADDR' => peer }
     env['HTTP_USER_AGENT'] = user_agent unless user_agent.nil?
     response = Rack::MockRequest.new(app).get('/', env)
     [response.status, response.status == 200 ? JSON.parse(response.body) : nil]
@@ -111,5 +111,33 @@ class AllowBotsTest < Minitest::Test
 
     assert_equal 1, warnings.length
     assert_match(/no user_agent verdict/, warnings.first)
+  end
+
+  # Local development, behind no proxy: the peer is a bogon, answered locally in
+  # the widest shape with no verdict, which is no plan gap. Under
+  # `on_missing_field: :raise` a crawler's request used to be the one place the
+  # app could answer 500 for it. This stands beside the public-peer tests above,
+  # never in place of them.
+  def test_a_crawler_from_a_bogon_peer_passes_with_no_plan_gap
+    %w[127.0.0.1 10.0.0.1 ::1].each do |peer|
+      %i[raise warn].each do |action|
+        sent = origin('spoofed')
+        warnings = []
+        app = Rack::Builder.new do
+          use VPNDetection::Rails::Middleware, api_key: 'k_readme', allow_bots: true, on_missing_field: action,
+                                               block_condition: { user_agent: { verdict: 'spoofed' } },
+                                               on_warn: ->(m) { warnings << m }
+          run APP
+        end.to_app
+
+        status, body = get(app, peer: peer)
+
+        assert_equal 200, status, "#{peer}, #{action}: a bogon is no plan gap"
+        assert_equal({ 'verdict' => nil, 'is_hosting' => false }, body, "#{peer}, #{action}: its answer is attached")
+        assert_empty sent, "#{peer}, #{action}: a bogon reaches no origin"
+        assert_empty warnings.grep(/does not include/), "#{peer}, #{action}"
+        Typhoeus::Expectation.clear
+      end
+    end
   end
 end
