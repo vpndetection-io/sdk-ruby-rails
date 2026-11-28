@@ -78,6 +78,15 @@ class MiddlewareTest < Minitest::Test
     end
   end
 
+  # `timeout:` reaches the base's client, which refuses one past 2147483 seconds,
+  # the longest curl holds. Through vpndetection 5.23.0 it took up to 2147483.647
+  # and then failed every lookup with a raw Ethon::Errors::SetOption.
+  def test_a_timeout_past_the_longest_curl_holds_is_refused_where_the_middleware_is_built
+    assert_raises(ArgumentError) { VPNDetection::Rails::Middleware.new(APP, timeout: 2_147_483.5) }
+    assert_instance_of VPNDetection::Rails::Middleware,
+                       VPNDetection::Rails::Middleware.new(APP, timeout: 2_147_483)
+  end
+
   def test_enriches_the_request_and_leaves_the_decision_to_the_app
     client, calls = serving({ 'ip' => PUBLIC_IP, 'is_vpn' => true })
     status, body = call(client: client, ip_selector: ->(_r) { PUBLIC_IP })
