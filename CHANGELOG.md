@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.0.4 are described by their release commits.
 
+## 2.2.7 - 2026-11-28
+
+### Fixes
+
+- Require vpndetection 5.23.1: a timeout past 2147483 seconds is refused where it is set ([`b775278`](https://github.com/vpndetection-io/sdk-ruby-rails/commit/b775278ca8b09e2571c04a4d707b8c289252e5c9))
+
 ## 2.2.6 - 2026-11-27
 
 ### Features
